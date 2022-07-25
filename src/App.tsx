@@ -5,7 +5,6 @@ import { Toaster } from "react-hot-toast";
 import { ModalTodo } from "./components/ModalTodo";
 import { ModalFoto } from "./components/ModalFoto";
 import TodoList from "./components/TodoList";
-import { useSelector, useDispatch } from "react-redux";
 import {
   closeCreateModal,
   showCreateModal,
@@ -20,20 +19,19 @@ import {
   closeEditModal,
 } from "./redux/features/todoSlice";
 import { convertToBase64 } from "./utils/convertToBase64";
-import { sliceState } from "./types/Todo";
+import { Todo } from "./types/Todo";
+import { useAppDispatch, useAppSelector } from "./redux/store";
 
 function App() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("Pendente");
   const [photo, setPhoto] = useState("");
 
-  const dispatch = useDispatch();
-  const app = useSelector((state) => state) as sliceState;
-  // const effect = useRef(false);
+  const dispatch = useAppDispatch();
+  const app = useAppSelector();
   const edit = useRef(-1);
 
   useEffect(() => {
-    // if (effect.current === false) {
     const fetchBd = async () => {
       try {
         dispatch(getTodos());
@@ -42,18 +40,7 @@ function App() {
       }
     };
     fetchBd();
-    console.log(app.get.isCreateModalVisible);
-    // };
-    // return () => {
-    //   effect.current = true;
-    //   console.log(dispatch);
-    // };
-  }, [
-    app.get.isCreateModalVisible,
-    app.get.isEditModalVisible,
-    app.get.modalImage,
-    dispatch,
-  ]);
+  }, [dispatch, app.get.isCreateModalVisible, app.get.isEditModalVisible]);
 
   const resetData = () => {
     URL.revokeObjectURL(photo);
@@ -93,8 +80,9 @@ function App() {
           dispatch(showFotoModal(id));
         }}
         editTodo={editTodo}
-        handleFinish={(id: number) => {
+        handleFinish={(id: Todo) => {
           dispatch(handleComplete(id));
+          dispatch(getTodos());
         }}
         handleDelete={(id: number) => {
           dispatch(handleDelete(id));

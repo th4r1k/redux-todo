@@ -12,6 +12,7 @@ export type todoState = {
 };
 
 export type sliceState = {
+  id?: number;
   description?: string;
   status?: string;
   photo?: string;
@@ -32,4 +33,19 @@ export type sliceState = {
     isFotoModalVisible?: boolean;
     modalImage?: string;
   };
+};
+
+export type InitialStatus = {
+  todos: [
+    {
+      id: number;
+      tarefa: string;
+      status: string;
+      foto: string;
+    }
+  ];
+  isCreateModalVisible: boolean;
+  isEditModalVisible: boolean;
+  isFotoModalVisible: boolean;
+  modalImage: string;
 };

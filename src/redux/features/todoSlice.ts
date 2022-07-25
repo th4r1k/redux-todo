@@ -1,20 +1,24 @@
 import toast from "react-hot-toast";
 
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { sliceState, Todo, todoState } from "../../types/Todo";
 
-const BD = "http://localhost:8080/todos";
+// const BD = "http://localhost:8080/todos";
+const BD = "https://springbe.herokuapp.com/todos";
 
 export const getTodos = createAsyncThunk("todos/getTodos", async () => {
-  return fetch(BD).then((data) => data.json());
+  try {
+    return fetch(BD).then((data) => data.json());
+  } catch (error) {
+    return alert(error);
+  }
 });
 
 export const handleCreate = createAsyncThunk(
   "todos/handleCreate",
   async (todo: todoState) => {
-    console.log(todo);
     if (todo.description == "") {
-      alert("A descrição é obrigatória!");
+      return alert("A descrição é obrigatória!");
     } else {
       let data = {
         tarefa: todo.description,
@@ -30,11 +34,11 @@ export const handleCreate = createAsyncThunk(
           },
           body: JSON.stringify(data),
         });
-        toast.success("Nova Tarefa criada", {
+        return toast.success("Nova Tarefa criada", {
           position: "bottom-center",
         });
       } catch (error) {
-        alert(error);
+        return alert(error);
       }
     }
   }
@@ -43,16 +47,16 @@ export const handleCreate = createAsyncThunk(
 export const handleDelete = createAsyncThunk(
   "todos/handleDelete",
   async (id: number) => {
-    console.log(id);
     try {
       await fetch(`${BD}/${id}`, {
         method: "DELETE",
       });
-      toast.success("Tarefa deletada", {
+      toast.success("Tarefa concluida", {
         position: "bottom-center",
       });
+      return id;
     } catch (error) {
-      alert(error);
+      return alert(error);
     }
   }
 );
@@ -60,7 +64,6 @@ export const handleDelete = createAsyncThunk(
 export const handleComplete = createAsyncThunk(
   "todos/handleComplete",
   async (todo: Todo) => {
-    console.log(todo);
     try {
       let data = {
         tarefa: todo.tarefa,
@@ -76,16 +79,19 @@ export const handleComplete = createAsyncThunk(
         },
         body: JSON.stringify(data),
       });
+      toast.success("Tarefa concluida", {
+        position: "bottom-center",
+      });
+      return todo;
     } catch (error) {
-      alert(error);
+      return alert(error);
     }
   }
 );
 
 export const handleEdit = createAsyncThunk(
   "todos/handleEdit",
-  async (todo: sliceState) => {
-    console.log(todo);
+  async (todo: any) => {
     if (todo.description == "") {
       alert("A descrição é obrigatória!");
     } else {
@@ -104,11 +110,11 @@ export const handleEdit = createAsyncThunk(
           },
           body: JSON.stringify(data),
         });
-        toast.success("Tarefa editada", {
+        return toast.success("Tarefa editada", {
           position: "bottom-center",
         });
       } catch (error) {
-        console.log(error);
+        return console.log(error);
       }
     }
   }
@@ -119,7 +125,7 @@ const todoSlice = createSlice({
   initialState: {
     todos: [
       {
-        id: "",
+        id: -1,
         tarefa: "",
         status: "",
         foto: "",
@@ -146,7 +152,6 @@ const todoSlice = createSlice({
     showFotoModal: (state, { payload }) => {
       state.isFotoModalVisible = true;
       state.modalImage = payload;
-      console.log(payload);
     },
     closeFotoModal: (state) => {
       state.isFotoModalVisible = false;
@@ -156,7 +161,7 @@ const todoSlice = createSlice({
     // [getTodos.pending]: (state) => {
     //   state.status = "loading";
     // },
-    [getTodos.fulfilled]: (state, { payload }) => {
+    [getTodos.fulfilled.type]: (state, { payload }: PayloadAction<Todo[]>) => {
       state.todos = payload;
       // state.status = "sucess";
     },
@@ -166,7 +171,7 @@ const todoSlice = createSlice({
     // [handleCreate.pending]: (state) => {
     //   state.status = "loading";
     // },
-    [handleCreate.fulfilled]: (state) => {
+    [handleCreate.fulfilled.type]: (state) => {
       // state.status = "sucess";
       state.isCreateModalVisible = false;
     },
@@ -177,9 +182,12 @@ const todoSlice = createSlice({
     // [handleComplete.pending]: (state) => {
     //   state.status = "loading";
     // },
-    [handleComplete.fulfilled]: (state) => {
+    [handleComplete.fulfilled.type]: (state) => {
       // state.status = "sucess";
       state.isCreateModalVisible = false;
+      // action.payload.status = "Finalizada";
+      // state.todos = state.todos;
+      // console.log(action.payload.status, "AAAAAAAAAAAAAa");
     },
     // [handleComplete.rejected]: (state) => {
     //   state.status = "failed";
@@ -188,9 +196,11 @@ const todoSlice = createSlice({
     // [handleDelete.pending]: (state) => {
     //   state.status = "loading";
     // },
-    // [handleDelete.fulfilled]: (state) => {
-    //   state.status = "sucess";
-    // },
+    [handleDelete.fulfilled.type]: (state, action) => {
+      state.todos = state.todos.filter(
+        (todo: Todo) => todo.id != action.payload
+      );
+    },
     // [handleDelete.rejected]: (state) => {
     //   state.status = "failed";
     // },
@@ -198,7 +208,7 @@ const todoSlice = createSlice({
     // [handleEdit.pending]: (state) => {
     //   state.status = "loading";
     // },
-    [handleEdit.fulfilled]: (state) => {
+    [handleEdit.fulfilled.type]: (state) => {
       // state.status = "sucess";
       state.isEditModalVisible = false;
     },
