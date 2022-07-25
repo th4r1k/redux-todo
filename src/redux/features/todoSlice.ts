@@ -8,7 +8,7 @@ const BD = "https://springbe.herokuapp.com/todos";
 
 export const getTodos = createAsyncThunk("todos/getTodos", async () => {
   try {
-    return fetch(BD).then((data) => data.json());
+    return fetch(BD, { mode: "no-cors" }).then((data) => data.json());
   } catch (error) {
     return alert(error);
   }
@@ -27,6 +27,7 @@ export const handleCreate = createAsyncThunk(
       };
       try {
         await fetch(BD, {
+          mode: "no-cors",
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -49,6 +50,7 @@ export const handleDelete = createAsyncThunk(
   async (id: number) => {
     try {
       await fetch(`${BD}/${id}`, {
+        mode: "no-cors",
         method: "DELETE",
       });
       toast.success("Tarefa concluida", {
@@ -72,6 +74,7 @@ export const handleComplete = createAsyncThunk(
       };
 
       await fetch(`${BD}/${todo.id}`, {
+        mode: "no-cors",
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -103,6 +106,7 @@ export const handleEdit = createAsyncThunk(
         };
 
         await fetch(`${BD}/${todo.get.todos[todo.edit.current].id}`, {
+          mode: "no-cors",
           method: "PUT",
           headers: {
             Accept: "application/json",
